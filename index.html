@@ -110,6 +110,7 @@
   }
   .status-attended { color: #5fd97a; font-size: 12px; margin-top: 2px; }
   .status-absent { color: #ef5a5a; font-size: 12px; margin-top: 2px; }
+  .status-notyet { color: #ef5a5a; font-size: 12px; margin-top: 2px; }
   .status-online { color: whitesmoke; font-size: 25px; font-weight: normal; margin-top: 4px; display: flex; align-items: center; gap: 4px; }
   .note-line { color: #cfd6e4; font-size: 11px; font-style: normal; margin-top: 2px; }
 
@@ -247,6 +248,7 @@
   <ul>
     <li><span style="color: #5fd97a;">(attended)</span>: NamNDHS194052 had attended this activity / Nguyễn Đức Nam đã tham gia hoạt động này</li>
     <li><span style="color: #ef5a5a;">(absent)</span>: NamNDHS194052 had NOT attended this activity / Nguyễn Đức Nam đã vắng mặt buổi này</li>
+    <li><span style="color: #e0952a;">(Not yet)</span>: NamNDHS194052 has not yet attended this activity / Chưa diễn ra hoặc chưa điểm danh</li>
     <li><span>(-): no data was given / chưa có dữ liệu</span></li>
   </ul>
 </div>
@@ -294,6 +296,7 @@
         <option value="">-- Không --</option>
         <option value="attended">Đã điểm danh (attended)</option>
         <option value="absent">Vắng (absent)</option>
+        <option value="notyet">Chưa điểm danh (Not yet)</option>
         <option value="online">Học online</option>
       </select>
       <label>Ghi chú (VD: _ChangeLecture)</label>
@@ -323,7 +326,7 @@ const slotRows = [0,1,2,3,4,5,6,7,8];
 let data = {};
 slotRows.forEach(s => { data[s] = Array.from({length:DAYS}, () => []); });
 
-// Mẫu dữ liệu chuẩn FAP
+// Mẫu dữ liệu chuẩn FAP (có bổ sung ví dụ trạng thái notyet)
 data[1][0] = [{code:'IEI301', room:'DE-C206', time:'7:30-9:50', status:'attended', note:'', materials:true, edunext:true}];
 data[1][1] = [{code:'SSB201', room:'DE-336', time:'7:30-9:50', status:'attended', note:'', materials:true, edunext:true}];
 data[1][2] = [{code:'IBS301m', room:'DE-C207', time:'7:30-9:50', status:'attended', note:'', materials:true, edunext:true}];
@@ -332,7 +335,7 @@ data[1][5] = [{code:'MKT205c', room:'Phòng tự học 3', time:'7:30-9:00', sta
 
 data[2][0] = [{code:'IBS301m', room:'DE-C207', time:'10:00-12:20', status:'attended', note:'', materials:true, edunext:true}];
 data[2][1] = [{code:'CHN123', room:'DE-216', time:'10:00-12:20', status:'attended', note:'', materials:true, edunext:true}];
-data[2][2] = [{code:'IEI301', room:'DE-C206', time:'10:00-12:20', status:'attended', note:'', materials:true, edunext:true}];
+data[2][2] = [{code:'IEI301', room:'DE-C206', time:'10:00-12:20', status:'notyet', note:'', materials:true, edunext:true}];
 data[2][3] = [{code:'SSB201', room:'DE-336', time:'10:00-12:20', status:'attended', note:'', materials:true, edunext:true}];
 
 let editingIndex = -1; 
@@ -342,7 +345,6 @@ function initWeekOptions() {
   const select = document.getElementById('weekLabel');
   select.innerHTML = '';
   
-  // Khởi tạo danh sách tuần mẫu
   const weeks = [
     "18/05 To 24/05",
     "25/05 To 31/05",
@@ -388,6 +390,7 @@ function statusHtml(b) {
   if (b.note) html += `<div class="note-line">(${b.note})</div>`;
   if (b.status === 'attended') html += '<div class="status-attended">(attended)</div>';
   if (b.status === 'absent') html += '<div class="status-absent">(absent)</div>';
+  if (b.status === 'notyet') html += '<div class="status-notyet">(Not yet)</div>';
   if (b.time) html += `<div class="time-badge">(${b.time})</div>`;
   if (b.status === 'online' || b.isOnline) html += '<div class="status-online"><span style="font-size:16px;">🟢</span> Online</div>';
   return html;
