@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Schedule of Week</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    background: #12151c;
+    color: #cfd6e4;
+    font-family: Segoe UI, Arial, sans-serif;
+    margin: 0;
+    padding: 16px 24px;
+  }
+
+  /* Header thanh điều hướng FAP */
+  .fap-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #1a1f2c;
+    padding: 8px 16px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    font-size: 13px;
+    border: 1px solid #2a3040;
+  }
+  .fap-header-left a {
+    color: #ff9800;
+    text-decoration: none;
+  }
+  .fap-header-left a:hover { text-decoration: underline; }
+  .fap-header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .user-badge { color: #5fd97a; }
+  .logout-btn { color: #ef5a5a; text-decoration: none; }
+  
+  .btn-manage { 
+    background: #2b6fd8; 
+    border: 1px solid #3d4a70; 
+    color: #ffffff; 
+    font-weight: 600; 
+    padding: 5px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: 0.2s;
+  }
+  .btn-manage:hover { background: #1e56b3; }
+
+  h1 { font-size: 22px; font-weight: 500; color: #e7ebf3; margin-bottom: 16px; }
+
+  /* Bảng TKB chuẩn FAP */
+  table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+  th, td {
+    border: 1px solid #3d4963; vertical-align: top; padding: 6px;
+    font-size: 13px;
+  }
+  
+  thead th, thead td {
+    background: #7193e1 !important; 
+    color: #e2eafc !important; 
+    font-weight: normal; 
+    text-align: left; 
+    padding: 6px;
+    border: 1px solid #5a7ac4;
+  }
+  thead .date-row td, thead .date-row th { 
+    background: #7193e1 !important; 
+    font-size: 13px; 
+    color: #e2eafc !important;
+    text-align: left;
+  }
+  
+  .slot-col { width: 160px; background: #12151c; color: #cfd6e4; font-weight: 400; text-align: left; }
+  .header-slot-col { width: 160px !important; text-align: left !important; white-space: nowrap; }
+  
+  .year-text { color: #ff4a4a; font-weight: bold; margin-right: 4px; font-size: 12px;}
+  .week-text { color: #c4d4f8; font-weight: bold; margin-right: 4px; font-size: 12px;}
+  .fap-select {
+    background: #3c3c3c; color: #e2eafc; border: 1px solid #222; 
+    border-radius: 2px; padding: 2px 4px; font-size: 11px;
+  }
+
+  .day-cell { min-height: 50px; }
+  .cell-empty { text-align: left; color: #cfd6e4; padding-top: 10px; }
+
+  .class-block {
+    background: #12151c;
+    border-radius: 4px;
+    padding: 2px 4px;
+    margin-bottom: 4px;
+  }
+  .class-code { color: #6fb4ff; font-weight: 600; font-size: 13px; }
+  .materials-badge {
+    display: inline-block; background: #e0952a; color: #3a2200; font-size: 10px;
+    font-weight: 600; padding: 1px 5px; border-radius: 3px; margin-left: 2px;
+  }
+  .edunext-badge {
+    display: inline-block; background: #2b8fd8; color: #06263d; font-size: 10px;
+    font-weight: 600; padding: 1px 5px; border-radius: 3px; margin-left: 2px;
+  }
+  .room-line { color: #cfd6e4; font-size: 12px; margin-top: 2px; }
+  .time-badge {
+    display: inline-block; background: #5fd97a; color: #000; font-size: 11px;
+    font-weight: bold; padding: 1px 6px; border-radius: 10px; margin-top: 3px;
+  }
+  .status-attended { color: #5fd97a; font-size: 12px; margin-top: 2px; }
+  .status-absent { color: #ef5a5a; font-size: 12px; margin-top: 2px; }
+  .status-online { color: whitesmoke; font-size: 25px; font-weight: normal; margin-top: 4px; display: flex; align-items: center; gap: 4px; }
+  .note-line { color: #cfd6e4; font-size: 11px; font-style: normal; margin-top: 2px; }
+
+  /* Phần chú thích thêm bên dưới TKB */
+  .bottom-notes {
+    margin-top: 20px;
+    font-size: 13px;
+    color: #cfd6e4;
+  }
+  .bottom-notes a {
+    color: #ff9800;
+    text-decoration: underline;
+  }
+  .bottom-notes ul {
+    margin-top: 8px;
+    padding-left: 20px;
+  }
+  .bottom-notes li {
+    margin-bottom: 4px;
+  }
+
+  /* Modal Popup Styles */
+  .overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65);
+    align-items: center; justify-content: center; z-index: 100;
+  }
+  .overlay.show { display: flex; }
+  .modal {
+    background: #1a1f2c; border: 1px solid #333c52; border-radius: 8px;
+    padding: 20px; width: 420px; max-height: 90vh; overflow-y: auto; color: #dfe4ee;
+  }
+  .modal h3 { margin-top: 0; font-size: 18px; font-weight: 500; border-bottom: 1px solid #333c52; padding-bottom: 10px; }
+  .modal label { display: block; font-size: 12px; color: #9aa4bc; margin: 10px 0 4px; }
+  .modal input[type=text], .modal select {
+    width: 100%; background: #12151c; border: 1px solid #333c52; border-radius: 4px;
+    color: #e7ebf3; padding: 8px; font-size: 13px;
+  }
+  .modal .checkrow { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 13px; }
+  
+  .m-class-item {
+    background: #12151c; border: 1px solid #2a3040; border-radius: 6px;
+    padding: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;
+  }
+  .m-class-info strong { color: #6fb4ff; display: block; margin-bottom: 4px; }
+  .m-class-actions button {
+    background: #2a3350; border: 1px solid #3d4a70; color: #cfe0ff; border-radius: 4px;
+    padding: 4px 10px; font-size: 12px; cursor: pointer; margin-left: 4px;
+  }
+  .m-class-actions button:hover { background: #384368; }
+  .m-class-actions button.btn-del { background: #7a2323; border-color: #7a2323; }
+  .m-class-actions button.btn-del:hover { background: #a12b2b; }
+
+  .modal-actions { margin-top: 18px; display: flex; justify-content: flex-end; gap: 8px; }
+  .modal-actions button {
+    padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 13px; border: 1px solid #3d4a70;
+  }
+  .btn-save { background: #2b6fd8; color: #fff; border-color: #2b6fd8; }
+  .btn-save:hover { background: #1e56b3; }
+  .btn-cancel { background: transparent; color: #cfd6e4; }
+  .btn-cancel:hover { background: #2a3040; }
+  .btn-full { width: 100%; background: #2a3350; border: 1px dashed #3d4a70; color: #cfe0ff; margin-top: 10px; }
+  .btn-full:hover { background: #384368; }
+
+  .info-text { font-size: 14px; color: #cfd6e4; line-height: 1.7; margin-bottom: 4px; }
+  .info-text u { text-decoration: underline; }
+  .info-block { margin-bottom: 24px; }
+</style>
+</head>
+<body>
+
+<!-- Header FAP với nút Quản lý góc phải -->
+<div class="fap-header">
+  <div class="fap-header-left">
+    <a href="#">Home</a> | <span style="color:#cfd6e4">View Schedule</span>
+  </div>
+  <div class="fap-header-right">
+    <span class="user-badge">unim190105@gmail.com</span> | 
+    <a href="#" class="logout-btn">logout</a> | 
+    <span style="color:#9aa4bc">CAMPUS: FPTHoChiMinh</span>
+    <button class="btn-manage" onclick="openManageModal()">⚙️ Quản lý TKB</button>
+  </div>
+</div>
+
+<h1 id="activitiesTitle">Activities for NamNDHS194052 (Nguyễn Đức Nam)</h1>
+
+<div class="info-block">
+  <div class="info-text"><u>Note</u>: These activities do not include extra-curriculum activities, such as club activities ...</div>
+  <div class="info-text"><u>Chú thích</u>: Các hoạt động trong bảng dưới không bao gồm hoạt động ngoại khóa, ví dụ như hoạt động câu lạc bộ ...</div>
+  <br>
+  <div class="info-text">Các phòng bắt đầu bằng AL thuộc tòa nhà Alpha. VD: AL...</div>
+  <div class="info-text">Các phòng bắt đầu bằng BE thuộc tòa nhà Beta. VD: BE,..</div>
+  <div class="info-text">Các phòng bắt đầu bằng GA thuộc tòa nhà Gamma. VD: G201,...</div>
+  <div class="info-text">Các phòng tập bằng đầu bằng R thuộc khu vực sân tập Vovinam.</div>
+  <div class="info-text">Các phòng bắt đầu bằng DE thuộc tòa nhà Delta. VD: DE,..</div>
+  <div class="info-text">Little UK (LUK) thuộc tầng 5 tòa nhà Delta</div>
+  <div class="info-text">Nhà võ số 1 (ký hiệu VOV1 - nằm cuối tòa nhà Alpha) gồm 6 sân tập: R01-VOV1 đến R06-VOV1</div>
+  <div class="info-text">Nhà võ số 2 (ký hiệu VOV2 - cạnh cổng trường) gồm 8 sân tập: R01-VOV2 đến R08-VOV2</div>
+  <div class="info-text">Nhà võ số 3 (ký hiệu VOV3 - cạnh hồ Delta) gồm 4 sân tập: R01-VOV3 đến R04-VOV3</div>
+</div>
+
+<table id="scheduleTable">
+  <thead>
+    <tr>
+      <th class="header-slot-col">
+        <span class="year-text">YEAR</span>
+        <select class="fap-select" id="yearInput" onchange="updateWeekDates()">
+          <option value="2026">2026</option>
+          <option value="2027">2027</option>
+        </select>
+      </th>
+      <th>MON</th><th>TUE</th><th>WED</th><th>THU</th><th>FRI</th><th>SAT</th><th>SUN</th>
+    </tr>
+    <tr class="date-row">
+      <th class="header-slot-col">
+        <span class="week-text">WEEK</span>
+        <select class="fap-select" id="weekLabel" onchange="updateWeekDates()">
+          <!-- Tự động load danh sách tuần bằng JS -->
+        </select>
+      </th>
+      <td id="d_0">18/05</td>
+      <td id="d_1">19/05</td>
+      <td id="d_2">20/05</td>
+      <td id="d_3">21/05</td>
+      <td id="d_4">22/05</td>
+      <td id="d_5">23/05</td>
+      <td id="d_6">24/05</td>
+    </tr>
+  </thead>
+  <tbody id="tableBody"></tbody>
+</table>
+
+<!-- Phần chú thích thêm (More note / Chú thích thêm) bên dưới bảng Slot -->
+<div class="bottom-notes">
+  <a href="#">More note / Chú thích thêm</a>:
+  <ul>
+    <li><span style="color: #5fd97a;">(attended)</span>: NamNDHS194052 had attended this activity / Nguyễn Đức Nam đã tham gia hoạt động này</li>
+    <li><span style="color: #ef5a5a;">(absent)</span>: NamNDHS194052 had NOT attended this activity / Nguyễn Đức Nam đã vắng mặt buổi này</li>
+    <li><span>(-): no data was given / chưa có dữ liệu</span></li>
+  </ul>
+</div>
+
+<!-- Popup Quản lý TKB -->
+<div class="overlay" id="manageOverlay">
+  <div class="modal">
+    <h3>Quản lý Lịch Học</h3>
+    
+    <div style="display:flex; gap:10px; margin-bottom: 15px;">
+      <div style="flex: 1;">
+        <label style="margin-top:0">Chọn Slot</label>
+        <select id="m_slot" onchange="loadCellData()"></select>
+      </div>
+      <div style="flex: 1;">
+        <label style="margin-top:0">Chọn Thứ (Ngày)</label>
+        <select id="m_day" onchange="loadCellData()">
+          <option value="0">Thứ 2 (MON)</option>
+          <option value="1">Thứ 3 (TUE)</option>
+          <option value="2">Thứ 4 (WED)</option>
+          <option value="3">Thứ 5 (THU)</option>
+          <option value="4">Thứ 6 (FRI)</option>
+          <option value="5">Thứ 7 (SAT)</option>
+          <option value="6">Chủ Nhật (SUN)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Danh sách môn học trong Slot/Ngày đã chọn -->
+    <div id="m_classList"></div>
+    
+    <button class="modal-actions btn-full" id="btnAddClass" onclick="showAddForm()">+ Thêm môn học vào Slot này</button>
+
+    <!-- Form Nhập Chi Tiết -->
+    <div id="m_form" style="display:none; margin-top: 15px; border-top: 1px solid #333c52; padding-top: 15px;">
+      <h4 id="formTitle" style="margin: 0 0 10px; font-weight: 500; color: #e7ebf3;">Thêm/Sửa môn học</h4>
+      <label>Mã môn học (VD: IEI301)</label>
+      <input type="text" id="f_code">
+      <label>Phòng học (VD: DE-C206)</label>
+      <input type="text" id="f_room">
+      <label>Khung giờ (VD: 7:30-9:50)</label>
+      <input type="text" id="f_time">
+      <label>Trạng thái</label>
+      <select id="f_status">
+        <option value="">-- Không --</option>
+        <option value="attended">Đã điểm danh (attended)</option>
+        <option value="absent">Vắng (absent)</option>
+        <option value="online">Học online</option>
+      </select>
+      <label>Ghi chú (VD: _ChangeLecture)</label>
+      <input type="text" id="f_note">
+      <div class="checkrow">
+        <input type="checkbox" id="f_materials"> <label style="margin:0;" for="f_materials">Có View Materials</label>
+      </div>
+      <div class="checkrow">
+        <input type="checkbox" id="f_edunext"> <label style="margin:0;" for="f_edunext">Có EduNext</label>
+      </div>
+      
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="hideForm()">Hủy</button>
+        <button class="btn-save" onclick="saveBlock()">Lưu thông tin</button>
+      </div>
+    </div>
+
+    <div class="modal-actions" style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #333c52;">
+      <button class="btn-cancel" onclick="closeManageModal()" style="width: 100%; background: #2a3350;">Đóng quản lý</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DAYS = 7;
+const slotRows = [0,1,2,3,4,5,6,7,8];
+let data = {};
+slotRows.forEach(s => { data[s] = Array.from({length:DAYS}, () => []); });
+
+// Mẫu dữ liệu chuẩn FAP
+data[1][0] = [{code:'IEI301', room:'DE-C206', time:'7:30-9:50', status:'attended', note:'', materials:true, edunext:true}];
+data[1][1] = [{code:'SSB201', room:'DE-336', time:'7:30-9:50', status:'attended', note:'', materials:true, edunext:true}];
+data[1][2] = [{code:'IBS301m', room:'DE-C207', time:'7:30-9:50', status:'attended', note:'', materials:true, edunext:true}];
+data[1][3] = [{code:'CHN123', room:'DE-216', time:'7:30-9:50', status:'attended', note:'_ChangeLecture', materials:true, edunext:true}];
+data[1][5] = [{code:'MKT205c', room:'Phòng tự học 3', time:'7:30-9:00', status:'absent', note:'', materials:true, edunext:true, isOnline:true}];
+
+data[2][0] = [{code:'IBS301m', room:'DE-C207', time:'10:00-12:20', status:'attended', note:'', materials:true, edunext:true}];
+data[2][1] = [{code:'CHN123', room:'DE-216', time:'10:00-12:20', status:'attended', note:'', materials:true, edunext:true}];
+data[2][2] = [{code:'IEI301', room:'DE-C206', time:'10:00-12:20', status:'attended', note:'', materials:true, edunext:true}];
+data[2][3] = [{code:'SSB201', room:'DE-336', time:'10:00-12:20', status:'attended', note:'', materials:true, edunext:true}];
+
+let editingIndex = -1; 
+
+// Tự động khởi tạo danh sách Tuần
+function initWeekOptions() {
+  const select = document.getElementById('weekLabel');
+  select.innerHTML = '';
+  
+  // Khởi tạo danh sách tuần mẫu
+  const weeks = [
+    "18/05 To 24/05",
+    "25/05 To 31/05",
+    "01/06 To 07/06",
+    "08/06 To 14/06",
+    "15/06 To 21/06"
+  ];
+
+  weeks.forEach(w => {
+    const opt = document.createElement('option');
+    opt.value = w;
+    opt.textContent = w;
+    select.appendChild(opt);
+  });
+}
+
+// Cập nhật ngày tháng trên header theo tuần chọn
+function updateWeekDates() {
+  const weekVal = document.getElementById('weekLabel').value;
+  const yearVal = parseInt(document.getElementById('yearInput').value);
+  
+  const startStr = weekVal.split(" To ")[0];
+  const parts = startStr.split("/");
+  const day = parseInt(parts[0]);
+  const month = parseInt(parts[1]) - 1;
+
+  const startDate = new Date(yearVal, month, day);
+
+  for (let i = 0; i < 7; i++) {
+    const currDate = new Date(startDate);
+    currDate.setDate(startDate.getDate() + i);
+    
+    const dStr = String(currDate.getDate()).padStart(2, '0');
+    const mStr = String(currDate.getMonth() + 1).padStart(2, '0');
+    
+    const cell = document.getElementById(`d_${i}`);
+    if (cell) cell.textContent = `${dStr}/${mStr}`;
+  }
+}
+
+function statusHtml(b) {
+  let html = '';
+  if (b.note) html += `<div class="note-line">(${b.note})</div>`;
+  if (b.status === 'attended') html += '<div class="status-attended">(attended)</div>';
+  if (b.status === 'absent') html += '<div class="status-absent">(absent)</div>';
+  if (b.time) html += `<div class="time-badge">(${b.time})</div>`;
+  if (b.status === 'online' || b.isOnline) html += '<div class="status-online"><span style="font-size:16px;">🟢</span> Online</div>';
+  return html;
+}
+
+function renderBlock(b) {
+  let html = '<div class="class-block">';
+  html += '<span class="class-code">'+b.code+'</span>';
+  if (b.materials) html += '<span class="materials-badge">View Materials</span>';
+  if (b.room) html += '<div class="room-line">at '+b.room;
+  if (b.edunext) html += ' <span class="edunext-badge">-EduNext</span>';
+  if (b.room) html += '</div>';
+  html += statusHtml(b);
+  html += '</div>';
+  return html;
+}
+
+function render() {
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = '';
+  slotRows.forEach(slot => {
+    const tr = document.createElement('tr');
+    let rowHtml = `<td class="slot-col">Slot ${slot}</td>`;
+    for (let day = 0; day < DAYS; day++) {
+      const blocks = data[slot][day];
+      let cellHtml = '<td class="day-cell">';
+      if (blocks.length === 0) {
+        cellHtml += '<div class="cell-empty">-</div>';
+      } else {
+        blocks.forEach(b => { cellHtml += renderBlock(b); });
+      }
+      cellHtml += '</td>';
+      rowHtml += cellHtml;
+    }
+    tr.innerHTML = rowHtml;
+    tbody.appendChild(tr);
+  });
+}
+
+function updateSlotDropdown() {
+  const select = document.getElementById('m_slot');
+  select.innerHTML = '';
+  slotRows.forEach(slot => {
+    const opt = document.createElement('option');
+    opt.value = slot;
+    opt.textContent = 'Slot ' + slot;
+    select.appendChild(opt);
+  });
+}
+
+function openManageModal() {
+  updateSlotDropdown();
+  document.getElementById('manageOverlay').classList.add('show');
+  loadCellData();
+}
+
+function closeManageModal() {
+  document.getElementById('manageOverlay').classList.remove('show');
+  hideForm();
+}
+
+function loadCellData() {
+  hideForm(); 
+  const slot = parseInt(document.getElementById('m_slot').value);
+  const day = parseInt(document.getElementById('m_day').value);
+  const listContainer = document.getElementById('m_classList');
+  listContainer.innerHTML = '';
+
+  const classes = data[slot][day] || [];
+  if (classes.length === 0) {
+    listContainer.innerHTML = '<div style="font-size: 13px; color: #9aa4bc; text-align: center; padding: 10px;">Chưa có môn học nào ở Slot này.</div>';
+    return;
+  }
+
+  classes.forEach((b, idx) => {
+    const div = document.createElement('div');
+    div.className = 'm-class-item';
+    div.innerHTML = `
+      <div class="m-class-info">
+        <strong>${b.code}</strong>
+        <span style="font-size: 12px; color: #b7c0d4;">Phòng: ${b.room || 'N/A'}</span>
+      </div>
+      <div class="m-class-actions">
+        <button onclick="editBlock(${idx})">✎ Sửa</button>
+        <button class="btn-del" onclick="deleteBlock(${idx})">✕ Xóa</button>
+      </div>
+    `;
+    listContainer.appendChild(div);
+  });
+}
+
+function showAddForm() {
+  editingIndex = -1;
+  document.getElementById('formTitle').textContent = 'Thêm môn học mới';
+  document.getElementById('f_code').value = '';
+  document.getElementById('f_room').value = '';
+  document.getElementById('f_time').value = '';
+  document.getElementById('f_status').value = '';
+  document.getElementById('f_note').value = '';
+  document.getElementById('f_materials').checked = true;
+  document.getElementById('f_edunext').checked = true;
+  
+  document.getElementById('m_form').style.display = 'block';
+  document.getElementById('btnAddClass').style.display = 'none';
+}
+
+function editBlock(idx) {
+  editingIndex = idx;
+  const slot = parseInt(document.getElementById('m_slot').value);
+  const day = parseInt(document.getElementById('m_day').value);
+  const b = data[slot][day][idx];
+  
+  document.getElementById('formTitle').textContent = 'Sửa môn học';
+  document.getElementById('f_code').value = b.code || '';
+  document.getElementById('f_room').value = b.room || '';
+  document.getElementById('f_time').value = b.time || '';
+  document.getElementById('f_status').value = b.status || '';
+  document.getElementById('f_note').value = b.note || '';
+  document.getElementById('f_materials').checked = !!b.materials;
+  document.getElementById('f_edunext').checked = !!b.edunext;
+
+  document.getElementById('m_form').style.display = 'block';
+  document.getElementById('btnAddClass').style.display = 'none';
+}
+
+function hideForm() {
+  document.getElementById('m_form').style.display = 'none';
+  document.getElementById('btnAddClass').style.display = 'block';
+  editingIndex = -1;
+}
+
+function saveBlock() {
+  const code = document.getElementById('f_code').value.trim();
+  if (!code) { alert('Vui lòng nhập mã môn học'); return; }
+  
+  const b = {
+    code: code,
+    room: document.getElementById('f_room').value.trim(),
+    time: document.getElementById('f_time').value.trim(),
+    status: document.getElementById('f_status').value,
+    note: document.getElementById('f_note').value.trim(),
+    materials: document.getElementById('f_materials').checked,
+    edunext: document.getElementById('f_edunext').checked
+  };
+
+  const slot = parseInt(document.getElementById('m_slot').value);
+  const day = parseInt(document.getElementById('m_day').value);
+
+  if (editingIndex === -1) {
+    data[slot][day].push(b);
+  } else {
+    data[slot][day][editingIndex] = b;
+  }
+  
+  hideForm();
+  loadCellData();
+  render();
+}
+
+function deleteBlock(idx) {
+  if (!confirm('Xóa môn học này khỏi thời khóa biểu?')) return;
+  const slot = parseInt(document.getElementById('m_slot').value);
+  const day = parseInt(document.getElementById('m_day').value);
+  
+  data[slot][day].splice(idx, 1);
+  loadCellData();
+  render();
+}
+
+initWeekOptions();
+updateWeekDates();
+render();
+</script>
+</body>
+</html>
